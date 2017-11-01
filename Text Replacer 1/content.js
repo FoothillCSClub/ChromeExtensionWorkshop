@@ -1,1 +1,1 @@
-document.body.innerHTML = document.body.innerHTML.replace(/apple/gi, "orange");
+document.body.innerHTML = document.body.innerHTML.replace(/Apple/g, "Orange").replace(/apple/gi, "orange");
