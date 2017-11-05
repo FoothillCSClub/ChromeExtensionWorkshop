@@ -1,24 +1,31 @@
+const background = chrome.extension.getBackgroundPage();
+
 document.onreadystatechange = function () {
-	document.getElementById('findInput').addEventListener('change', setFindText(event.target.value));
-	document.getElementById('replaceInput').addEventListener('change', setReplaceText(event.target.value));
-
-	chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-		window.port = chrome.tabs.connect(tabs[0].id)
-	})
+	var findInput = document.getElementById('findInput');
+	var replaceInput = document.getElementById('replaceInput');
+	chrome.storage.local.get(null, items => {
+		findInput.value = items.findText || '';
+		replaceInput.value = items.replaceText || '';
+	});
+	findInput.addEventListener('input', setFindText);
+	replaceInput.addEventListener('input', setReplaceText);
 }
 
-function setFindText(str) {
+function setFindText(e) {
+	var str = e.target.value;
+	console.log(str);
 	chrome.storage.local.set({ findText: str });
-	chrome.runtime.sendMessage({ findText: str });
-	try {
-		window.port.postMessage({ findText: str });
-	} catch (e) {}
+	background.findText = str;
+	chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+		chrome.tabs.sendMessage(tabs[0].id, { findText: str });
+	});
 }
 
-function setReplaceText(str) {
+function setReplaceText(e) {
+	var str = e.target.value;
 	chrome.storage.local.set({ replaceText: str });
-	chrome.runtime.sendMessage({ replaceText: str });
-	try {
-		window.port.postMessage({ replaceText: str });
-	} catch (e) { }
+	background.replaceText = str;
+	chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+		chrome.tabs.sendMessage(tabs[0].id, { replaceText: str });
+	});
 }
